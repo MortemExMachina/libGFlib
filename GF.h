@@ -176,4 +176,10 @@ public:
 	~Polynom();
 };
 
+	/*! return true if polynom is primitive
+	 * \param characteristic is characteristic of field
+	 * \param degree is degree of field
+	 * \param polynom is vector of coefficients primitive with highter degree right(at the tail of vector)
+	*/
+bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std::vector<int> const& polynom);
 #endif //UNTITLED_GF_H

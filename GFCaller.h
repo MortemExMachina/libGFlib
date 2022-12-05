@@ -103,4 +103,12 @@ extern "C" __declspec(dllexport) BSTR __stdcall PolynomPrintAsDegree(Polynom * p
 extern "C" __declspec(dllexport) void __stdcall DeletePolynom(Polynom * p) {
 	delete p;
 }
+extern "C" __declspec(dllexport) bool __stdcall IsPolynomPrimitive(unsigned int characteristic, unsigned int degree, int const* polynom, size_t polynom_size) {
+	std::vector<int> vector = std::vector<int>(polynom_size);
+	for (int i = 0; i < polynom_size; ++i) {
+		vector[i] = polynom[i];
+	}
+	return is_polynom_primitive(characteristic, degree, vector);
+}
+
 #endif //GFLIB_GFCALLER_H

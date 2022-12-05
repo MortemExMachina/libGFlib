@@ -124,7 +124,7 @@ Element GF::division(Element& e1, Element& e2) {
 	if (is_zero(e2) || is_zero(e1)) {
 		return field[0];
 	}
-	if ((int)(e1.primitive_degree - e2.primitive_degree) >= 0) {
+	if (e1.primitive_degree - e2.primitive_degree >= 0) {
 		return field[(e1.primitive_degree - e2.primitive_degree + 1)];
 	}
 	else {
@@ -257,7 +257,7 @@ Polynom* Polynom::operator/(Polynom& p) {
 	size_t i = p.value.size();
 	Polynom tmp = Polynom(*this);
 	for (int k = tmp.value.size() - i; k >= 0; --k) {
-		result->value[k] = field->division(tmp.value[k + i], p.value[i]);
+		result->value[k] = field->division(tmp.value[k + i - 1], p.value[i - 1]);
 		for (int j = k + i - 1; j >= k; j--) {
 			Element sub = field->multiply(p.value[j - k], result->value[k]);
 			tmp.value[j] = field->sub(tmp.value[j], sub);
@@ -348,4 +348,35 @@ void Polynom::recalc_degree() {
 	if (value.size() == 0) {
 		value.push_back(field->field[0]);
 	}
+}
+
+bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std::vector<int> const& polynom) {
+	std::vector<int> primitive = polynom;
+	for (int i = 0; i < degree; i++) {
+		primitive[i] = (-primitive[i] + characteristic) % characteristic;
+	}
+	std::vector<int> prev = std::vector<int>(degree, 0);
+	prev[0] = 1;
+	int number_of_elements = pow(characteristic, degree);
+	for (size_t i = 0; i < number_of_elements - 2; ++i) {
+		std::vector<int>  v = std::vector<int>(degree, 0);
+		for (unsigned int k = degree - 1; k > 0; --k) {
+			v[k] = (prev[k - 1] + primitive[k] * prev[degree - 1]) % characteristic;
+		}
+		v[0] = (primitive[0] * prev[degree - 1]) % characteristic;
+		if (v[0] == 1) {
+			bool is_one = true;
+			for (int i = 1;i < v.size();++i) {
+				if (v[i] != 0) {
+					is_one = false;
+				}
+			}
+			if (is_one) {
+				return false;
+			}
+		}
+		prev = std::move(v);
+		v.clear();
+	}
+	return true;
 }
