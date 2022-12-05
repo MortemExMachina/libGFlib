@@ -352,6 +352,9 @@ void Polynom::recalc_degree() {
 
 bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std::vector<int> const& polynom) {
 	std::vector<int> primitive = polynom;
+	if (primitive[degree - 1] == 0) {
+		return false;
+	}
 	for (int i = 0; i < degree; i++) {
 		primitive[i] = (-primitive[i] + characteristic) % characteristic;
 	}
@@ -359,19 +362,32 @@ bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std:
 	prev[0] = 1;
 	int number_of_elements = pow(characteristic, degree);
 	for (size_t i = 0; i < number_of_elements - 2; ++i) {
-		std::vector<int>  v = std::vector<int>(degree, 0);
+		std::vector<int> v = std::vector<int>(degree, 0);
 		for (unsigned int k = degree - 1; k > 0; --k) {
 			v[k] = (prev[k - 1] + primitive[k] * prev[degree - 1]) % characteristic;
 		}
 		v[0] = (primitive[0] * prev[degree - 1]) % characteristic;
 		if (v[0] == 1) {
 			bool is_one = true;
-			for (int i = 1;i < v.size();++i) {
+			for (int i = 1; i < v.size(); ++i) {
 				if (v[i] != 0) {
 					is_one = false;
+					break;
 				}
 			}
 			if (is_one) {
+				return false;
+			}
+		}
+		else if (v[0] == 0) {
+			bool is_zero = true;
+			for (int i = 1; i < v.size(); ++i) {
+				if (v[i] != 0) {
+					is_zero = false;
+					break;
+				}
+			}
+			if (is_zero) {
 				return false;
 			}
 		}
