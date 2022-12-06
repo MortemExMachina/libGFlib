@@ -350,49 +350,59 @@ void Polynom::recalc_degree() {
 	}
 }
 
+bool is_divisible(std::vector<int> const& polynom1, std::vector<int> const& polynom2,
+	std::vector<int> const& mul_reverse, int characteristic) {
+	std::vector<int> result = std::vector<int>(polynom1.size(), 0);
+	size_t i = polynom2.size();
+	std::vector<int> tmp = polynom1;
+	for (int k = tmp.size() - i; k >= 0; --k) {
+		result[k] = tmp[(k + i - 1)] * mul_reverse[polynom2[i - 1]] % characteristic;
+		for (int j = k + i - 1; j >= k; j--) {
+			tmp[j] -= polynom2[j - k] * result[k] % characteristic;
+			tmp[j] = tmp[j] < 0 ? tmp[j] + characteristic : tmp[j];
+		}
+	}
+	for (int j : tmp) {
+		if (j != 0) {
+			return false;
+		}
+	}
+	return true;
+}
+
 bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std::vector<int> const& polynom) {
-	std::vector<int> primitive = polynom;
-	if (primitive[degree - 1] == 0) {
+	if (polynom[degree - 1] == 0) {
 		return false;
 	}
-	for (int i = 0; i < degree; i++) {
-		primitive[i] = (-primitive[i] + characteristic) % characteristic;
+	if (polynom.size() - 1 != degree) {
+		return false;
 	}
-	std::vector<int> prev = std::vector<int>(degree, 0);
-	prev[0] = 1;
+	std::vector<int> mul_reverse = std::vector<int>(characteristic);
+	for (int i = 1; i < characteristic; ++i) {
+		for (int j = 1; j < characteristic; ++j) {
+			if ((i * j) % characteristic == 1) {
+				mul_reverse[i] = j;
+			}
+		}
+	}
 	int number_of_elements = pow(characteristic, degree);
-	for (size_t i = 0; i < number_of_elements - 2; ++i) {
-		std::vector<int> v = std::vector<int>(degree, 0);
-		for (unsigned int k = degree - 1; k > 0; --k) {
-			v[k] = (prev[k - 1] + primitive[k] * prev[degree - 1]) % characteristic;
-		}
-		v[0] = (primitive[0] * prev[degree - 1]) % characteristic;
-		if (v[0] == 1) {
-			bool is_one = true;
-			for (int i = 1; i < v.size(); ++i) {
-				if (v[i] != 0) {
-					is_one = false;
-					break;
-				}
-			}
-			if (is_one) {
+	std::vector<int> big_polynom = std::vector<int>(number_of_elements);
+	big_polynom[0] = characteristic == 2 ? 1 : characteristic - 1;
+	big_polynom[big_polynom.size() - 1] = 1;
+	if (!is_divisible(big_polynom, polynom, mul_reverse, characteristic)) {
+		return false;
+	}
+	big_polynom.clear();
+	for (int j = degree; j < number_of_elements / 2 + 1; ++j) {
+		if ((number_of_elements - 1) % j == 0) {
+			big_polynom = std::vector<int>(j + 1, 0);
+			big_polynom[0] = characteristic == 2 ? 1 : characteristic - 1;
+			big_polynom[j] = 1;
+			if (is_divisible(big_polynom, polynom, mul_reverse, characteristic)) {
 				return false;
 			}
+			big_polynom.clear();
 		}
-		else if (v[0] == 0) {
-			bool is_zero = true;
-			for (int i = 1; i < v.size(); ++i) {
-				if (v[i] != 0) {
-					is_zero = false;
-					break;
-				}
-			}
-			if (is_zero) {
-				return false;
-			}
-		}
-		prev = std::move(v);
-		v.clear();
 	}
 	return true;
 }
