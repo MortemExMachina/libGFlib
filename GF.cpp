@@ -371,7 +371,7 @@ bool is_divisible(std::vector<int> const& polynom1, std::vector<int> const& poly
 }
 
 bool is_polynom_primitive(unsigned int characteristic, unsigned int degree, std::vector<int> const& polynom) {
-	if (polynom[degree - 1] == 0) {
+	if (polynom[degree] == 0) {
 		return false;
 	}
 	if (polynom.size() - 1 != degree) {
